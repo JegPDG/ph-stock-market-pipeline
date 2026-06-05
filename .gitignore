@@ -1,0 +1,50 @@
+```gitignore id="q5m8n2"
+# Virtual environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# SQLite database files
+*.sqlite3
+*.db
+/sql_db
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Python packaging
+.eggs/
+pip-wheel-metadata/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# PyCharm
+.idea/
+```
