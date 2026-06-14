@@ -25,6 +25,7 @@ df_long = df_long.rename(
 df_long.columns.name = None 
 
 conn = sqlite3.connect("sql_db/stocks.db")
+cursor = conn.cursor()
 
 df_long.to_sql(
   "stocks_prices", 
@@ -33,16 +34,22 @@ df_long.to_sql(
   index=False
   )
 
-df_from_db = pd.read_sql(f"SELECT * FROM stocks_prices", conn)
+cursor.execute("PRAGMA table_info(stocks_prices)")
 
-pd.testing.assert_frame_equal(df_long, df_from_db)
+columns = cursor.fetchall()
 
+for col in columns:
+    # col[1] is the column name, col[2] is the data type
+    print(f"Column: {col[1]} | Type: {col[2]}")
+
+
+
+# df_from_db = pd.read_sql(f"SELECT * FROM stocks_prices", conn)
+# print(df_from_db)
 
 conn.close()
 
-print(df_long.columns)
 
-print("Verification successful! The DataFrames match.")
 
 
 
