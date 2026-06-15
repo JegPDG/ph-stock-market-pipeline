@@ -43,6 +43,8 @@ for col in columns:
     print(f"Column: {col[1]} | Type: {col[2]}")
 
 
+# Create a reference table for the tickers 
+
 
 # df_from_db = pd.read_sql(f"SELECT * FROM stocks_prices", conn)
 # print(df_from_db)
