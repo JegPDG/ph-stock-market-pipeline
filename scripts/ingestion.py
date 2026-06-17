@@ -45,7 +45,7 @@ for col in columns:
 
 # Create a reference table for the tickers 
 
-
+print(df_long)
 # df_from_db = pd.read_sql(f"SELECT * FROM stocks_prices", conn)
 # print(df_from_db)
 
