@@ -73,7 +73,8 @@ query_for_ticker_1 = """
     close_price,
     open_price,
     volume,
-    (close_price - LAG(close_price) OVER(PARTITION BY ticker ORDER BY trade_date)) / 100 AS daily_return,
+    (close_price - LAG(close_price) OVER(PARTITION BY ticker ORDER BY trade_date)) / LAG(close_price) OVER(PARTITION BY ticker ORDER BY trade_date) * 100 AS daily_return,
+    
     (close_price * volume) AS trading_value,
 
     AVG(close_price) OVER(
@@ -118,8 +119,8 @@ metrics_df.to_sql(
 )
 
 
-print(metrics_df)
-# print(agregate_df.info())
+print(metrics_df.info())
+print(agregate_df.info())
 # print(df)
 conn.commit()
 conn.close()
