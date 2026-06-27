@@ -38,17 +38,43 @@ compare_daily_return = pd.read_sql_query("""
       ticker,
       daily_return
     FROM stocks_analytics
+    WHERE daily_return IS NOT NULL
     """, conn)
 
 # Which days had the most money moving?
+act_trad_d = pd.read_sql_query("""
+   SELECT 
+      ticker,
+      trade_date,
+      volume,
+      trading_value
+    FROM stocks_analytics
+    ORDER By trading_value DESC                           
+    """, conn)
 
 
 
+# Save all in different CSV for dashboard 
+# create a for loop for this
+dataFrames = [
+    (agregate_table, "aggregate_tbl"), 
+    (h_mvng_30_avg, "h_moving_30d_avg"),
+    (highest_volatility, "highest_volatility"),
+    (compare_daily_return, "compare_daily_return"),
+    (act_trad_d, "act_trad_d")
+    ]
 
+for dataframe, path in dataFrames:
+  dataframe = dataframe.reset_index()
 
-# print(agregate_table)
-# print(h_mvng_30_avg)
-# print(highest_volatility)
-print(compare_daily_return)
+  dataframe.to_csv(f"sql_db/csv_files/{path}.csv", index=False)
+  print("Done saving:", path)
 
+# print(agregate_table.head())
+# print(h_mvng_30_avg.head())
+# print(highest_volatility.head())
+# print(compare_daily_return.head())
+# print(act_trad_d.head())
+
+conn.commit()
 conn.close()
