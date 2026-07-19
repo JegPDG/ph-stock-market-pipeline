@@ -12,9 +12,16 @@ def load_dashboard_data():
   
   with sqlite3.connect("sql_db/stocks.db") as conn:
     df_stck_anly = pd.read_sql_query("SELECT * FROM stocks_analytics", conn)
+    # Format the date time to (Month 00)
+    df_stck_anly['trade_date'] = pd.to_datetime(df_stck_anly['trade_date'])
+    df_stck_anly = df_stck_anly.sort_values(by='trade_date')
+    print(df_stck_anly)
+    df_stck_anly['trade_date'] = df_stck_anly['trade_date'].dt.strftime('%b %d')
 
   with sqlite3.connect("sql_db/stocks.db") as conn:
     df_stck_prc = pd.read_sql_query("SELECT * FROM stocks_prices", conn)
+    df_stck_prc['trade_date'] = pd.to_datetime(df_stck_prc['trade_date'])
+    df_stck_prc['trade_date'] = df_stck_prc['trade_date'].dt.strftime('%b %d')
   
   return df_ag_tbl, df_stck_anly, df_stck_prc
 
@@ -81,12 +88,10 @@ ticker = st.selectbox(
 
 # /////////////////////////////////////////
 
-st.title("Stock Candlestick Chart")
+st.header("Stock Candlestick Chart")
 
-df_stck_prc['trade_date'] = pd.to_datetime(df_stck_prc['trade_date'])
-df_stck_prc['trade_date'] = df_stck_prc['trade_date'].dt.strftime('%b %d')
-
-stock_df = df_stck_prc[df_stck_prc["ticker"] == ticker].sort_values("trade_date")
+# filter through ticker 
+stock_df = df_stck_prc[df_stck_prc["ticker"] == ticker]
 
 fig2 = go.Figure(
     data=[
@@ -118,10 +123,19 @@ st.bar_chart(
   y='volume'
 )
 
+ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
+# Daily Return Line Chart per Ticker
+st.header("Daily Return")
+st.line_chart(
+  ticker_dly_rtn,
+  x= "trade_date",
+  y= "daily_return"
+)
+
+
+
 
 # ////////////////////////////////////////
-df_stck_anly['trade_date'] = pd.to_datetime(df_stck_anly['trade_date'])
-df_stck_anly['trade_date'] = df_stck_anly['trade_date'].dt.strftime('%b %d')
 
 # Line chart for Close Price
 st.header("Close Price Comparison")

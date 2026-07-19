@@ -92,7 +92,7 @@ query_for_ticker_1 = """
   FROM stocks_prices
 
 """
-metrics_df = pd.read_sql_query(query_for_ticker_1, conn)
+metrics_df = pd.read_sql_query(query_for_ticker_1, conn, parse_dates=['trade_date'])
 
 # Create the volatility
 metrics_df['volatility_7d'] = metrics_df.groupby('ticker')['daily_return'].transform(
