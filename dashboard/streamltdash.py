@@ -105,8 +105,6 @@ with col1:
           unsafe_allow_html=True
       )
 
-# /////////////////////////////////////////
-
 
 with col2:
 
@@ -135,64 +133,87 @@ with col2:
   st.plotly_chart(fig2, use_container_width=True)
 
 with col3:
+  st.header('.')
+
+# ------------------------------------------------------------------------------------
+st.divider()
+
+col4, col5, col6 = st.columns([1,2,2])
+
+with col4:
   with st.container(border=True):
-        st.markdown(
-          f"""
-          <div style="font-size: 24px; display: flex; justify-content: space-between; align-content: center;">
-              <div> Summary table for {ticker} </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 50px; font-size: 14px; padding: 10px 20px 10px 20px; gap: 14px;">
-              <div> Current Price </div> 
-              <div> ₱{kpis_dict.get('current')} </div> 
-              <div> Daily Return </div> 
-              <div> {kpis_dict.get('daily_return')}% </div> 
-              <div> 7-day MA </div> 
-              <div> ₱{kpis_dict.get('7d_ma')} </div> 
-              <div> 30-day MA </div> 
-              <div> ₱{kpis_dict.get('30d_ma')} </div> 
-              <div> Today's Volume </div> 
-              <div> {kpis_dict.get('today_volume')}  </div> 
-              <div> Volatility (7D) </div> 
-              <div> {kpis_dict.get('volatility_7d')}%  </div> 
-          </div>
+    st.markdown(
+      f"""
+      <div style="font-size: 24px; font-weight:bold; display: flex; justify-content: space-between; align-content: center;">
+          <div> Insights for {ticker} </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 50px; font-size: 14px; padding: 10px 20px 10px 20px; gap: 14px;">
+          <div style="font-size:24px; font-weight:bold; "> Volume </div> 
+          <div> </div> 
+          <div> Maximum Close Price </div> 
+          <div> {kpis_dict.get('daily_return')}% </div> 
+          <div> Minimum Close Price </div> 
+          <div> ₱{kpis_dict.get('7d_ma')} </div> 
+          <div style="font-size:24px; font-weight:bold; "> Daily Return </div> 
+          <div> </div> 
+          <div> Highest Daily Return </div> 
+          <div> {kpis_dict.get('today_volume')}  </div> 
+          <div> Lowest Daily Return </div> 
+          <div> {kpis_dict.get('volatility_7d')}%  </div> 
+      </div>
 
-          <div style="font-size: 24px;">
-          </div>
-          """, 
-          unsafe_allow_html=True
-      )
-
-
+      <div style="font-size: 24px;">
+      </div>
+      """, 
+      unsafe_allow_html=True
+  )
 
 
-# Volume Bar Chart per Ticker
+with col5:
 
-vol_bar = px.bar(
-    stock_df,
-    x="trade_date",
-    y="volume",
-    title="Volume Bar Chart",
-    text_auto=True,  # Displays values on top of bars
-)
+  # Volume Bar Chart per Ticker
+  vol_bar = px.bar(
+      stock_df,
+      x="trade_date",
+      y="volume",
+      title="Volume Bar Chart",
+      text_auto=True,  # Displays values on top of bars
+  )
 
-st.plotly_chart(vol_bar, use_container_width=True)
+  vol_bar.update_layout(
+      title=f"{ticker} Volume Chart",
+      xaxis_title="Date",
+      yaxis_title="Volume",
+      xaxis_rangeslider_visible=False
+  )
+
+
+  st.plotly_chart(vol_bar, use_container_width=True)
+
+with col6:
+  
+  ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
+  # Daily Return Line Chart per Ticker
+
+  dly_line = px.line(
+    ticker_dly_rtn,
+    x='trade_date',
+    y='daily_return',
+    title="Daily Return Line Chart"
+  )
+
+  dly_line.update_layout(
+      title=f"{ticker} Daily Return Chart",
+      xaxis_title="Date",
+      yaxis_title="Daily Return",
+      xaxis_rangeslider_visible=False
+  )
+
+  st.plotly_chart(dly_line, use_container_width=True)
 
 # ------------------------------------------------------------------------------------
 
-
-ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
-# Daily Return Line Chart per Ticker
-
-dly_line = px.line(
-  ticker_dly_rtn,
-  x='trade_date',
-  y='daily_return',
-  title="Daily Return Line Chart"
-)
-
-st.plotly_chart(dly_line, use_container_width=True)
-
-# ////////////////////////////////////////
+st.divider()
 
 # Line chart for Close Price
 
