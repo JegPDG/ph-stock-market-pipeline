@@ -30,15 +30,20 @@ def load_dashboard_data():
        conn
     )
 
+    df_stock_dtls = pd.read_sql_query(
+      "SELECT * FROM stocks",
+      conn
+    )
+
     # Process dates
     df_stck_anly["trade_date"] = pd.to_datetime(df_stck_anly["trade_date"])
     df_stck_prc["trade_date"] = pd.to_datetime(df_stck_prc["trade_date"])
     df_kpi["trade_date"] = pd.to_datetime(df_kpi["trade_date"])
 
   
-  return df_ag_tbl, df_stck_anly, df_stck_prc, df_kpi
+  return df_ag_tbl, df_stck_anly, df_stck_prc, df_kpi, df_stock_dtls
 
-df_ag_tbl, df_stck_anly, df_stck_prc, df_kpi = load_dashboard_data()
+df_ag_tbl, df_stck_anly, df_stck_prc, df_kpi, df_stock_dtls = load_dashboard_data()
 
 # Rename columns
 df_ag_tbl = df_ag_tbl.rename(columns={
@@ -54,7 +59,7 @@ st.set_page_config(layout="wide")
 
 st.title("Stock Market Analytics Dashboard")
 
-col1, col2, col3 = st.columns([1,2,1])
+col1, col2 = st.columns([1,2])
 
 
 with col1:
@@ -76,6 +81,34 @@ with col1:
      'volatility_7d' : df_kpi_ticker['volatility_7d'].values[0].round(2),
       'trade_date' : df_kpi_ticker['trade_date'].values[0],  
   }
+
+  df_stock_dtls_ticker = df_stock_dtls[df_stock_dtls['ticker'] == ticker]
+
+  stock_details = {
+     'name' : df_stock_dtls_ticker['name'].values[0],
+     'market' : df_stock_dtls_ticker['market'].values[0],
+     'sector' : df_stock_dtls_ticker['sector'].values[0],
+     'currency' : df_stock_dtls_ticker['currency'].values[0],
+  }
+
+  with st.container(border=True):
+          st.markdown(
+            f"""
+            <div style="display: grid; grid-template-columns: 100px 1fr; font-size: 14px; padding: 10px 20px 10px 20px; gap: 5px;">
+                <div> Stock: </div> 
+                <div> {stock_details.get('name')}</div> 
+                <div> Market: </div> 
+                <div> {stock_details.get('market')}</div> 
+                <div> Sector: </div> 
+                <div> {stock_details.get('sector')}</div> 
+                <div> Currency: </div> 
+                <div> {stock_details.get('currency')} </div> 
+            </div>
+            <div style="font-size: 24px;">
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
 
   with st.container(border=True):
         st.markdown(
@@ -108,7 +141,7 @@ with col1:
 
 with col2:
 
-  # Filter through ticker 
+# Filter through ticker 
   stock_df = df_stck_prc[df_stck_prc["ticker"] == ticker]
 
   fig2 = go.Figure(
@@ -132,8 +165,8 @@ with col2:
 
   st.plotly_chart(fig2, use_container_width=True)
 
-with col3:
-  st.header('.')
+# with col3:
+#   st.header('.')
 
 # ------------------------------------------------------------------------------------
 st.divider()
@@ -170,126 +203,168 @@ with col4:
 
 
 with col5:
+  with st.container(border=True):
+    # Volume Bar Chart per Ticker
+    vol_bar = px.bar(
+        stock_df,
+        x="trade_date",
+        y="volume",
+        title="Volume Bar Chart",
+        text_auto=True,  # Displays values on top of bars
+    )
 
-  # Volume Bar Chart per Ticker
-  vol_bar = px.bar(
-      stock_df,
-      x="trade_date",
-      y="volume",
-      title="Volume Bar Chart",
-      text_auto=True,  # Displays values on top of bars
-  )
-
-  vol_bar.update_layout(
-      title=f"{ticker} Volume Chart",
-      xaxis_title="Date",
-      yaxis_title="Volume",
-      xaxis_rangeslider_visible=False
-  )
+    vol_bar.update_layout(
+        title=f"{ticker} Volume Chart",
+        xaxis_title="Date",
+        yaxis_title="Volume",
+        xaxis_rangeslider_visible=False
+    )
 
 
-  st.plotly_chart(vol_bar, use_container_width=True)
+    st.plotly_chart(vol_bar, use_container_width=True)
 
 with col6:
-  
-  ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
-  # Daily Return Line Chart per Ticker
+  with st.container(border=True):
+      ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
+      # Daily Return Line Chart per Ticker
 
-  dly_line = px.line(
-    ticker_dly_rtn,
-    x='trade_date',
-    y='daily_return',
-    title="Daily Return Line Chart"
-  )
+      dly_line = px.line(
+        ticker_dly_rtn,
+        x='trade_date',
+        y='daily_return',
+        title="Daily Return Line Chart"
+      )
 
-  dly_line.update_layout(
-      title=f"{ticker} Daily Return Chart",
-      xaxis_title="Date",
-      yaxis_title="Daily Return",
-      xaxis_rangeslider_visible=False
-  )
+      dly_line.update_layout(
+          title=f"{ticker} Daily Return Chart",
+          xaxis_title="Date",
+          yaxis_title="Daily Return",
+          xaxis_rangeslider_visible=False
+      )
 
-  st.plotly_chart(dly_line, use_container_width=True)
+      st.plotly_chart(dly_line, use_container_width=True)
 
 # ------------------------------------------------------------------------------------
 
 st.divider()
-
-# Line chart for Close Price
-
-cls_line = px.line(
-  df_stck_anly,
-  x= "trade_date",
-  y= "close_price",
-  color="ticker"
-)
-
-st.plotly_chart(cls_line, use_container_width=True)
-
-# Line chart for Volume 
-vlm_line = px.line(
-  df_stck_anly,
-  x= "trade_date",
-  y= "volume",
-  color="ticker"
-)
-
-st.plotly_chart(vlm_line, use_container_width=True)
+st.header("Stocks Comparison")
+st.caption("Note: SM.PS is priced in PHP, JBFCY and BDOUY are priced in USD")
 
 
+col7, col8 = st.columns(2)
+
+
+with col7:
+  with st.container(border=True):
+    # Line chart for Close Price
+
+    cls_line = px.line(
+      df_stck_anly,
+      x= "trade_date",
+      y= "close_price",
+      color="ticker"
+    )
+
+    cls_line.update_layout(
+        title=f"CLose Price Comparison Line  Chart",
+        xaxis_title="Date",
+        yaxis_title="Close Price",
+        xaxis_rangeslider_visible=False
+    )
+
+    st.plotly_chart(cls_line, use_container_width=True)
+
+
+with col8:
+  with st.container(border=True):
+    # Line chart for Volume 
+    vlm_line = px.line(
+      df_stck_anly,
+      x= "trade_date",
+      y= "volume",
+      color="ticker"
+    )
+
+    vlm_line.update_layout(
+        title=f"Volume Comparison Line  Chart",
+        xaxis_title="Date",
+        yaxis_title="Volume",
+        xaxis_rangeslider_visible=False
+    )
+
+    st.plotly_chart(vlm_line, use_container_width=True)
+
+col9, col10 = st.columns(2)
 # Line chart for Volatility 
-vlty_line = px.line(
-  df_stck_anly,
-  x= "trade_date",
-  y= "volatility_7d",
-  color="ticker"
-)
+with col9:
+  with st.container(border=True):
+    vlty_line = px.line(
+    df_stck_anly,
+    x= "trade_date",
+    y= "volatility_7d",
+    color="ticker"
+    )
 
-st.plotly_chart(vlty_line, use_container_width=True)
+    vlty_line.update_layout(
+        title=f"Volatility Comparison Line  Chart",
+        xaxis_title="Date",
+        yaxis_title="Volatility (7-Days)",
+        xaxis_rangeslider_visible=False
+    )
 
+    st.plotly_chart(vlty_line, use_container_width=True)
 
+# ------------------------------------------------------------------------------------
 
+st.divider()
+st.header("Stocks Summary")
 
+col11, col12 = st.columns(2)
+
+with col11:
+   
 # # GROUPED BAR CHART 
 # st.header("Stock Summary")
 
-# # Group by Ticker
-# df_long = df_ag_tbl.melt(
-#   id_vars="ticker",
-#   value_vars=['Average Close', 'Average High', 'Average Low', 'Average Open'],
-#   var_name="Metric",
-#   value_name="Price"
-# )
+# Group by Ticker
+  df_long = df_ag_tbl.melt(
+    id_vars="ticker",
+    value_vars=['Average Close', 'Average High', 'Average Low', 'Average Open'],
+    var_name="Metric",
+    value_name="Price"
+  )
 
-# fig = px.bar(
-#     df_long,
-#     x="ticker",
-#     y="Price",
-#     color="Metric",
-#     barmode="group",
-#     title="Average Stock Prices by Ticker",
-#     labels={
-#         "ticker": "Stock",
-#         "Price": "Price",
-#         "Metric": "Price Type"
-#     }
-# )
+  stck_by_tckr = px.bar(
+      df_long,
+      x="ticker",
+      y="Price",
+      color="Metric",
+      barmode="group",
+      title="Average Stock Prices by Ticker",
+      labels={
+          "ticker": "Stock",
+          "Price": "Price",
+          "Metric": "Price Type"
+      }
+  )
 
-# st.plotly_chart(fig, use_container_width=True)
+  st.plotly_chart(stck_by_tckr, use_container_width=True)
 
-# # Group by ticker
-# fig1 = px.bar(
-#     df_long,
-#     x="Metric",
-#     y="Price",
-#     color="ticker",
-#     barmode="group",
-#     title="Average Stock Prices by Metric",
-#     labels={
-#         "ticker": "Stock",
-#         "Price": "Price",
-#         "Metric": "Price Type"
-#     }
-# )
+with col12:
+   
+  # Group by ticker
+  stck_by_mtrc = px.bar(
+      df_long,
+      x="Metric",
+      y="Price",
+      color="ticker",
+      barmode="group",
+      title="Average Stock Prices by Metric",
+      labels={
+          "ticker": "Stock",
+          "Price": "Price",
+          "Metric": "Price Type"
+      }
+  )
 
-# st.plotly_chart(fig1, use_container_width=True)
+  st.plotly_chart(stck_by_mtrc, use_container_width=True)
