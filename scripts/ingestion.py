@@ -8,7 +8,7 @@ tickers = ["BDOUY", "JBFCY", "SM"]
 
 # Stock reference
 stocks_data = [
-    ("SM.PS", "SM Investments Corporation", "PSE", "Conglomerates", "PHP"),
+    ("SM", "SM Investments Corporation", "PSE", "Conglomerates", "PHP"),
     ("JBFCY", "Jollibee Foods Corporation", "OTC", "Consumer Staples", "USD"),
     ("BDOUY", "BDO Unibank Inc", "OTC", "Financials", "USD")
 ]

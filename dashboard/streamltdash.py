@@ -113,19 +113,19 @@ with col1:
   with st.container(border=True):
         st.markdown(
           f"""
-          <div style="font-size: 24px; display: flex; justify-content: space-between; align-content: center;">
-              <div> KPI of {ticker} </div>
+          <div style="font-size: 24px; display: flex; justify-content: space-between; align-content: center; ">
+              <div style="font-weight: bold;"> KPI of {ticker} </div>
               <div style="font-size: 14px; color: #808080;"> {kpis_dict.get('trade_date')} </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 50px; font-size: 14px; padding: 10px 20px 10px 20px; gap: 14px;">
+          <div style="display: grid; grid-template-columns: 1fr 100px; font-size: 14px; padding: 10px 20px 10px 20px; gap: 14px;">
               <div> Current Price </div> 
-              <div> ₱{kpis_dict.get('current')} </div> 
+              <div style="display: flex; gap: 5px;"> <p style="color: #808080;">{stock_details.get('currency')}</p> {kpis_dict.get('current')} </div> 
               <div> Daily Return </div> 
               <div> {kpis_dict.get('daily_return')}% </div> 
               <div> 7-day MA </div> 
-              <div> ₱{kpis_dict.get('7d_ma')} </div> 
+              <div style="display: flex; gap: 5px;"> <p style="color: #808080;">{stock_details.get('currency')}</p>  {kpis_dict.get('7d_ma')} </div> 
               <div> 30-day MA </div> 
-              <div> ₱{kpis_dict.get('30d_ma')} </div> 
+              <div style="display: flex; gap: 5px;"> <p style="color: #808080;">{stock_details.get('currency')}</p>  {kpis_dict.get('30d_ma')} </div> 
               <div> Today's Volume </div> 
               <div> {kpis_dict.get('today_volume')}  </div> 
               <div> Volatility (7D) </div> 
@@ -171,28 +171,64 @@ with col2:
 # ------------------------------------------------------------------------------------
 st.divider()
 
+
+
 col4, col5, col6 = st.columns([1,2,2])
+
+ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
+
 
 with col4:
   with st.container(border=True):
+
+    # Volume Insights
+    df_vol_dly_ins = stock_df.copy()
+
+    df_vol_dly_ins['trade_date'] = pd.to_datetime(df_vol_dly_ins['trade_date'])
+
+    df_vol_dly_ins['trade_date'] = df_vol_dly_ins['trade_date'].dt.strftime('%B %d, %Y')
+
+    max_volume = df_vol_dly_ins.loc[df_vol_dly_ins['volume'].idxmax()]
+    
+    max_vol_val = max_volume['volume']
+    max_vol_date = max_volume['trade_date'] 
+
+    # Daily return Insights
+    df_dly_ins = ticker_dly_rtn.copy()
+    df_dly_ins['trade_date'] = pd.to_datetime(df_dly_ins['trade_date'])
+    df_dly_ins['trade_date'] = df_dly_ins['trade_date'].dt.strftime('%B %d, %Y')
+
+    max_dly_rtrn = df_dly_ins.loc[df_dly_ins['daily_return'].idxmax()]
+
+    max_dly_rtrn_date = max_dly_rtrn['trade_date']
+    max_dly_rtrn_value = max_dly_rtrn['daily_return'].round(2)
+
+    min_dly_rtrn = df_dly_ins.loc[df_dly_ins['daily_return'].idxmin()]
+
+    min_dly_rtrn_date = min_dly_rtrn['trade_date']
+    min_dly_rtrn_value = min_dly_rtrn['daily_return'].round(2)
+
     st.markdown(
       f"""
       <div style="font-size: 24px; font-weight:bold; display: flex; justify-content: space-between; align-content: center;">
           <div> Insights for {ticker} </div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 50px; font-size: 14px; padding: 10px 20px 10px 20px; gap: 14px;">
-          <div style="font-size:24px; font-weight:bold; "> Volume </div> 
+          <div style="font-size:24px; font-weight:bold; ">Highest Volume </div> 
           <div> </div> 
-          <div> Maximum Close Price </div> 
-          <div> {kpis_dict.get('daily_return')}% </div> 
-          <div> Minimum Close Price </div> 
-          <div> ₱{kpis_dict.get('7d_ma')} </div> 
+          <div> {max_vol_date} </div> 
+          <div> {max_vol_val} </div> 
           <div style="font-size:24px; font-weight:bold; "> Daily Return </div> 
           <div> </div> 
-          <div> Highest Daily Return </div> 
-          <div> {kpis_dict.get('today_volume')}  </div> 
-          <div> Lowest Daily Return </div> 
-          <div> {kpis_dict.get('volatility_7d')}%  </div> 
+          <div style="color: #B8B4B4;"> Highest Daily Return </div> 
+          <div> </div> 
+          <div> {max_dly_rtrn_date}</div> 
+          <div> {max_dly_rtrn_value}%</div> 
+          <div style="color: #B8B4B4;"> Lowest Daily Return </div> 
+          <div> </div> 
+          <div> {min_dly_rtrn_date}</div> 
+          <div> {min_dly_rtrn_value}%</div> 
+
       </div>
 
       <div style="font-size: 24px;">
@@ -220,12 +256,10 @@ with col5:
         xaxis_rangeslider_visible=False
     )
 
-
     st.plotly_chart(vol_bar, use_container_width=True)
 
 with col6:
   with st.container(border=True):
-      ticker_dly_rtn = df_stck_anly[df_stck_anly["ticker"] == ticker]
       # Daily Return Line Chart per Ticker
 
       dly_line = px.line(
@@ -248,7 +282,7 @@ with col6:
 
 st.divider()
 st.header("Stocks Comparison")
-st.caption("Note: SM.PS is priced in PHP, JBFCY and BDOUY are priced in USD")
+st.caption("Note: SM is priced in PHP, JBFCY and BDOUY are priced in USD")
 
 
 col7, col8 = st.columns(2)
@@ -272,6 +306,7 @@ with col7:
         xaxis_rangeslider_visible=False
     )
 
+
     st.plotly_chart(cls_line, use_container_width=True)
 
 
@@ -292,6 +327,8 @@ with col8:
         xaxis_rangeslider_visible=False
     )
 
+    vlm_line.update_yaxes(type="log")
+    
     st.plotly_chart(vlm_line, use_container_width=True)
 
 col9, col10 = st.columns(2)
@@ -314,57 +351,69 @@ with col9:
 
     st.plotly_chart(vlty_line, use_container_width=True)
 
+
+with col10:
+  with st.container(border=True):
+    st.header("Stocks Summary")
+    st.write(df_ag_tbl)
+
+
+
+
+
 # ------------------------------------------------------------------------------------
 
 st.divider()
-st.header("Stocks Summary")
+# st.header("Stocks Summary")
 
-col11, col12 = st.columns(2)
+# col11, col12 = st.columns(2)
 
-with col11:
+# with col11:
    
 # # GROUPED BAR CHART 
 # st.header("Stock Summary")
 
 # Group by Ticker
-  df_long = df_ag_tbl.melt(
-    id_vars="ticker",
-    value_vars=['Average Close', 'Average High', 'Average Low', 'Average Open'],
-    var_name="Metric",
-    value_name="Price"
-  )
+  # df_long = df_ag_tbl.melt(
+  #   id_vars="ticker",
+  #   value_vars=['Average Close', 'Average High', 'Average Low', 'Average Open'],
+  #   var_name="Metric",
+  #   value_name="Price"
+  # )
 
-  stck_by_tckr = px.bar(
-      df_long,
-      x="ticker",
-      y="Price",
-      color="Metric",
-      barmode="group",
-      title="Average Stock Prices by Ticker",
-      labels={
-          "ticker": "Stock",
-          "Price": "Price",
-          "Metric": "Price Type"
-      }
-  )
+  # st.write(df_ag_tbl)
 
-  st.plotly_chart(stck_by_tckr, use_container_width=True)
+  # stck_by_tckr = px.bar(
+  #     df_long,
+  #     x="ticker",
+  #     y="Price",
+  #     color="Metric",
+  #     barmode="group",
+  #     title="Average Stock Prices by Ticker",
+  #     labels={
+  #         "ticker": "Stock",
+  #         "Price": "Price",
+  #         "Metric": "Price Type"
+  #     }
+  # )
 
-with col12:
+  # st.plotly_chart(stck_by_tckr, use_container_width=True)
+
+# with col12:
    
-  # Group by ticker
-  stck_by_mtrc = px.bar(
-      df_long,
-      x="Metric",
-      y="Price",
-      color="ticker",
-      barmode="group",
-      title="Average Stock Prices by Metric",
-      labels={
-          "ticker": "Stock",
-          "Price": "Price",
-          "Metric": "Price Type"
-      }
-  )
+#   # Group by ticker
+#   stck_by_mtrc = px.bar(
+#       df_long,
+#       x="Metric",
+#       y="Price",
+#       color="ticker",
+#       barmode="group",
+#       title="Average Stock Prices by Metric",
+#       labels={
+#           "ticker": "Stock",
+#           "Price": "Price",
+#           "Metric": "Price Type"
+#       }
+#   )
 
-  st.plotly_chart(stck_by_mtrc, use_container_width=True)
+#   st.plotly_chart(stck_by_mtrc, use_container_width=True)
