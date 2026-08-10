@@ -118,9 +118,5 @@ metrics_df.to_sql(
     index=False
 )
 
-
-print(metrics_df.info())
-print(agregate_df.info())
-# print(df)
 conn.commit()
 conn.close()

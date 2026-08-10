@@ -43,7 +43,7 @@ cursor = conn.cursor()
 df_long.to_sql(
   "stocks_prices", 
   conn, 
-  if_exists="replace", #but use 'appened' later on, only use 'replace for the meantime
+  if_exists="replace", #but use 'appened' later on, only use 'replace for the meantime but would have to drop duplicates
   index=False
   )
 
@@ -68,16 +68,12 @@ conn.execute("""
     )
 """)
 
+# Insert data into the database
 conn.executemany("""
     INSERT OR IGNORE INTO stocks (ticker, name, market, sector, currency)
     VALUES (?, ?, ?, ?, ?)
 """, stocks_data)
 
-
-
-print(df_long)
-# df_from_db = pd.read_sql(f"SELECT * FROM stocks_prices", conn)
-# print(df_from_db)
 conn.commit()
 conn.close()
 
